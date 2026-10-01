@@ -13,4 +13,5 @@ func RegisterRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.HandleFunc("POST /api/products", handlers.CreateProduct(db))
 	mux.HandleFunc("PUT /api/products/{id}", handlers.UpdateProduct(db))
 	mux.HandleFunc("DELETE /api/products/{id}", handlers.DeleteProduct(db))
+	mux.HandleFunc("POST /api/orders", handlers.CreateOrder(db))
 }

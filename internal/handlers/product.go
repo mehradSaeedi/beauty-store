@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -15,6 +17,7 @@ func GetProducts(db *gorm.DB) http.HandlerFunc {
 		products, err := repository.GetAllProducts(db)
 		if err != nil {
 			http.Error(w, "Failed to get products", http.StatusInternalServerError)
+			log.Println(err.Error())
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -33,8 +36,14 @@ func GetProductByID(db *gorm.DB) http.HandlerFunc {
 		}
 
 		product, err := repository.GetProductByID(db, uint(id))
+
+		if errors.Is(err, repository.ErrProductNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
 		if err != nil {
-			http.Error(w, "Product not found", http.StatusNotFound)
+			http.Error(w, "Failed to get product", http.StatusInternalServerError)
+			log.Println(err.Error())
 			return
 		}
 
@@ -49,13 +58,20 @@ func CreateProduct(db *gorm.DB) http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&product)
 		if err != nil {
-			http.Error(w, "Invalid request body ", http.StatusBadRequest)
+			http.Error(w, "Invalid JSON request", http.StatusBadRequest)
 			return
 		}
 
 		err = repository.CreateProduct(db, &product)
+
+		if errors.Is(err, repository.ErrInvalidPrice) {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
 		if err != nil {
 			http.Error(w, "Failed to create product", http.StatusInternalServerError)
+			log.Println(err.Error())
 			return
 		}
 
@@ -88,11 +104,22 @@ func UpdateProduct(db *gorm.DB) http.HandlerFunc {
 		product.ID = uint(id)
 
 		err = repository.UpdateProduct(db, uint(id), &product)
-		if err != nil {
-			http.Error(w, "Failed to update product", http.StatusInternalServerError)
+
+		if errors.Is(err, repository.ErrInvalidPrice) {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
+		if errors.Is(err, repository.ErrProductNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
+		if err != nil {
+			http.Error(w, "Failed to update product", http.StatusInternalServerError)
+			log.Println(err.Error())
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
 
 		json.NewEncoder(w).Encode(product)
@@ -111,8 +138,15 @@ func DeleteProduct(db *gorm.DB) http.HandlerFunc {
 		}
 
 		err = repository.DeleteProduct(db, uint(id))
+
+		if errors.Is(err, repository.ErrProductNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
 		if err != nil {
-			http.Error(w, "Product not found", http.StatusNotFound)
+			http.Error(w, "Failed to delete product", http.StatusInternalServerError)
+			log.Println(err.Error())
 			return
 		}
 

@@ -17,7 +17,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = db.AutoMigrate(&models.Product{})
+	err = db.AutoMigrate(
+		&models.Product{},
+		&models.Order{},
+		&models.OrderItem{},
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,7 +29,8 @@ func main() {
 	mux := http.NewServeMux()
 	routes.RegisterRoutes(mux, db)
 
-	fmt.Println("Server running on localhost:8080")
+	mux.Handle("/", http.FileServer(http.Dir("./web")))
 
+	fmt.Println("Server running on localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }

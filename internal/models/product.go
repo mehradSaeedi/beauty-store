@@ -9,4 +9,5 @@ type Product struct {
 	Description string `json:"description"`
 	Price       int64  `json:"price"`
 	Stock       uint   `json:"stock"`
+	ImageURL    string `json:"image_url"`
 }

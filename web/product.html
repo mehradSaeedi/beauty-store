@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<!-- Previous version, kept for reference:
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product</title>
+</head>
+<body>
+    <div id="product"></div>
+    <script>
+        async function loadProduct() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get("id");
+            const response = await fetch(`/api/products/${id}`);
+            const product = await response.json();
+            const container = document.getElementById("product");
+            container.innerHTML = `
+                <img src="${product.image_url}" alt="${product.name}">
+                <h1>${product.name}</h1>
+                <p>${product.description}</p>
+                <p>${product.price.toLocaleString()} تومان</p>
+                <button onclick="addToCart(${product.ID})">افزودن به سبد خرید</button>
+            `;
+        }
+        loadProduct();
+        function addToCart(id) {
+            let cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const existingItem = cart.find(item => item.id === id);
+            if (existingItem) existingItem.quantity++;
+            else cart.push({ id: id, quantity: 1 });
+            localStorage.setItem("cart", JSON.stringify(cart));
+        }
+    </script>
+</body>
+</html>
+-->
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Product</title>
+</head>
+
+<body>
+
+    <header class="site-header">
+        <a class="brand" href="/">زیبایی‌سرا</a>
+        <nav class="site-nav"><a href="/">محصولات</a><a href="/cart.html">سبد خرید</a></nav>
+    </header>
+    <main class="page">
+        <p><a class="muted" href="/">← بازگشت به محصولات</a></p>
+        <div id="product" class="panel product-detail"></div>
+    </main>
+
+    <script>
+        async function loadProduct() {
+
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get("id");
+
+            const response = await fetch(`/api/products/${id}`);
+            const product = await response.json();
+
+            const container = document.getElementById("product");
+            container.innerHTML = `
+                <img src="${product.image_url}" alt="${product.name}">
+                <section>
+                    <span class="eyebrow">انتخابی برای مراقبت تو</span>
+                    <h1>${product.name}</h1>
+                    <p>${product.description}</p>
+                    <p class="price">${product.price.toLocaleString()} تومان</p>
+                    <button onclick="addToCart(${product.ID})">افزودن به سبد خرید</button>
+                </section>
+            `;
+        }
+
+        loadProduct();
+        
+        function addToCart(id) {
+            let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+            const existingItem = cart.find(item => item.id === id); 
+
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                cart.push({
+                    id: id,
+                    quantity: 1
+                });
+            }
+
+            localStorage.setItem("cart", JSON.stringify(cart));
+            alert("محصول به سبد خرید اضافه شد.");
+        }
+    </script>
+
+</body>
+</html>

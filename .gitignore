@@ -1,0 +1,40 @@
+# AI agent instructions and local configuration
+AGENT.md
+AGENTS.md
+.agents/
+.codex/
+CLAUDE.md
+.claude/
+GEMINI.md
+.gemini/
+.cursor/
+.clinerules
+.clinerules/
+.roo/
+.windsurf/
+.windsurfrules
+WARP.md
+.github/copilot-instructions.md
+.github/instructions/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Go build and test artifacts
+/bin/
+/dist/
+*.exe
+*.test
+*.out
+coverage.out
+coverage.html
+
+# Local logs and editor/OS files
+*.log
+.DS_Store
+*.swp
+*.swo
+*~
+.idea/

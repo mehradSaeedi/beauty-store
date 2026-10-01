@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<!-- Previous version, kept for reference:
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سبد خرید</title>
+</head>
+<body>
+    <h1>سبد خرید</h1>
+    <div id="cart"></div>
+    <script>
+        async function loadCart() {
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const container = document.getElementById("cart");
+            const checkoutForm = document.getElementById("checkout-form");
+            container.innerHTML = "";
+            checkoutForm.hidden = cart.length === 0;
+            if (cart.length === 0) {
+                container.innerHTML = "<p>سبد خرید شما خالی است.</p>";
+                return;
+            }
+            let cartTotal = 0;
+            for (const item of cart) {
+                const response = await fetch(`/api/products/${item.id}`);
+                if (!response.ok) {
+                    container.innerHTML = "<p>دریافت اطلاعات محصولات ناموفق بود.</p>";
+                    return;
+                }
+                const product = await response.json();
+                const total = product.price * item.quantity;
+                cartTotal += total;
+                const element = document.createElement("div");
+                element.innerHTML = `
+                    <h2>${product.name}</h2>
+                    <p>قیمت: ${product.price.toLocaleString()} تومان</p>
+                    <button onclick="changeQuantity(${item.id}, -1)">-</button>
+                    <button onclick="changeQuantity(${item.id}, +1)">+</button>
+                    <span>${item.quantity}</span>
+                    <p>جمع: ${total.toLocaleString()} تومان</p>
+                `;
+                container.appendChild(element);
+            }
+            container.innerHTML += `<h2>مجموع: ${cartTotal.toLocaleString()} تومان</h2>`;
+        }
+        function changeQuantity(id, amount) {
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const item = cart.find(item => item.id === id);
+            if (!item) return;
+            item.quantity += amount;
+            if (item.quantity <= 0) cart.splice(cart.indexOf(item), 1);
+            localStorage.setItem("cart", JSON.stringify(cart));
+            loadCart();
+        }
+        async function checkout(event) {
+            event.preventDefault();
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+            if (cart.length === 0) { alert("سبد خرید شما خالی است"); return; }
+            const customerName = document.getElementById("customer-name").value;
+            const customerPhone = document.getElementById("customer-phone").value;
+            const customerAddress = document.getElementById("customer-address").value;
+            const response = await fetch("/api/orders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ customer_name: customerName, customer_phone: customerPhone, customer_address: customerAddress, items: cart })
+            });
+            if (!response.ok) {
+                const message = await response.text();
+                alert(message || "ثبت سفارش ناموفق! لطفا دوباره تلاش کنید");
+                return;
+            }
+            localStorage.removeItem("cart");
+            loadCart();
+            alert("سفارش شما با موفقیت ثبت شد.");
+        }
+        document.addEventListener("DOMContentLoaded", loadCart);
+    </script>
+    <form id="checkout-form" onsubmit="checkout(event)">
+        <h2>اطلاعات سفارش</h2>
+        <label for="customer-name">نام و نام خانوادگی</label>
+        <input type="text" id="customer-name" name="customer_name" required>
+        <label for="customer-phone">شماره تماس</label>
+        <input type="tel" id="customer-phone" name="customer_phone" required>
+        <label for="customer-address">آدرس تحویل</label>
+        <textarea id="customer-address" name="customer_address" required></textarea>
+        <button type="submit">ثبت سفارش</button>
+    </form>
+</body>
+</html>
+-->
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles.css">
+    <title>سبد خرید</title>
+</head>
+
+<body>
+
+    <header class="site-header">
+        <a class="brand" href="/">زیبایی‌سرا</a>
+        <nav class="site-nav"><a href="/">محصولات</a><a href="/cart.html">سبد خرید</a></nav>
+    </header>
+    <main class="page">
+        <section class="intro"><span class="eyebrow">چند قدم تا سفارش</span><h1>سبد خرید</h1><p>محصولاتت را بررسی کن و اطلاعات تحویل را وارد کن.</p></section>
+        <div class="cart-layout">
+            <div id="cart"></div>
+            <form id="checkout-form" class="panel" onsubmit="checkout(event)" hidden>
+                <h2>اطلاعات سفارش</h2>
+                <label for="customer-name">نام و نام خانوادگی</label>
+                <input type="text" id="customer-name" name="customer_name" required>
+                <label for="customer-phone">شماره تماس</label>
+                <input type="tel" id="customer-phone" name="customer_phone" required>
+                <label for="customer-address">آدرس تحویل</label>
+                <textarea id="customer-address" name="customer_address" required></textarea>
+                <button type="submit">ثبت سفارش</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        async function loadCart() {
+
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const container = document.getElementById("cart");
+            const checkoutForm = document.getElementById("checkout-form");
+
+
+            container.innerHTML = "";
+            checkoutForm.hidden = cart.length === 0;
+
+            if (cart.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>سبد خرید شما خالی است.</p><a class="button" href="/">دیدن محصولات</a></div>';
+                return;
+            }
+
+            let cartTotal = 0;
+
+            for (const item of cart) {
+
+                const response = await fetch(`/api/products/${item.id}`);
+                if (!response.ok) {
+                    container.innerHTML = "<p>دریافت اطلاعات محصولات ناموفق بود.</p>";
+                    return;
+                }
+                
+                const product = await response.json();
+                const total = product.price * item.quantity;
+
+                cartTotal += total;
+
+                const element = document.createElement("div");
+
+                element.className = "cart-item";
+                element.innerHTML = `
+                    <h2>${product.name}</h2>
+                    <p>قیمت: ${product.price.toLocaleString()} تومان</p>
+                    <div class="quantity">
+                        <button class="button-secondary" aria-label="افزایش تعداد" onclick="changeQuantity(${item.id}, +1)">+</button>
+                        <span>${item.quantity}</span>
+                        <button class="button-secondary" aria-label="کاهش تعداد" onclick="changeQuantity(${item.id}, -1)">−</button>
+                    </div>
+                    <p class="item-total">جمع: ${total.toLocaleString()} تومان</p>
+                `;
+
+                container.appendChild(element);
+            }
+
+            container.innerHTML += `
+                <div class="cart-total">مجموع: ${cartTotal.toLocaleString()} تومان</div>
+            `
+        }
+
+        function changeQuantity(id, amount) {
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+            const item = cart.find(item => item.id === id);
+            if (!item) return;
+            
+            item.quantity += amount;
+
+            if (item.quantity <= 0) {
+                const index = cart.indexOf(item)
+                cart.splice(index, 1)
+            }
+
+
+            localStorage.setItem("cart", JSON.stringify(cart));
+
+            loadCart();
+
+        }
+
+        async function checkout(event) {
+            event.preventDefault();
+
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+            if (cart.length === 0) {
+                alert("سبد خرید شما خالی است");
+                return;
+            }
+
+            const customerName = document.getElementById("customer-name").value;
+            const customerPhone = document.getElementById("customer-phone").value;
+            const customerAddress = document.getElementById("customer-address").value;
+
+            const response = await fetch("/api/orders", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    customer_name: customerName,
+                    customer_phone: customerPhone,
+                    customer_address: customerAddress,
+                    items: cart
+                })
+            })
+
+            if (!response.ok) {
+                const message = await response.text();
+                alert(message || "ثبت سفارش ناموفق! لطفا دوباره تلاش کنید");
+                return;
+            }
+
+        localStorage.removeItem("cart");
+        loadCart();
+        alert("سفارش شما با موفقیت ثبت شد.");
+        }
+        document.addEventListener("DOMContentLoaded", loadCart);
+        
+    </script>
+
+</body>
+</html>

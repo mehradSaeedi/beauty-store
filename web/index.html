@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!-- Previous version, kept for reference:
+<html lang="fa" dir="rtl">
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f7f7f7; direction: rtl; }
+        #products { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .product-card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; background: white; }
+        .product-card h2 { margin-top: 15px; margin-bottom: 10px; }
+        .product-card p { margin: 8px 0; }
+        .product-card img { width: 100%; height: 200px; object-fit: contain; border-radius: 6px; }
+    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beauty Store</title>
+</head>
+<body>
+    <h1>Beauty Store</h1>
+    <div id="products"></div>
+    <script>
+        async function loadProducts() {
+            const response = await fetch("api/products");
+            const products = await response.json();
+            const container = document.getElementById("products");
+            products.forEach(product => {
+                const element = document.createElement("div");
+                element.className = "product-card";
+                element.innerHTML = `
+                    <a href="/product.html?id=${product.ID}">
+                        <h2>${product.name}</h2>
+                        <img src="${product.image_url}" alt="${product.name}">
+                        <p>${product.description}</p>
+                        <p>${product.price.toLocaleString()} تومان</p>
+                    </a>
+                `;
+                container.appendChild(element);
+            });
+        }
+        loadProducts();
+    </script>
+</body>
+</html>
+-->
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Beauty Store</title>
+</head>
+<body>
+
+    <header class="site-header">
+        <a class="brand" href="/">زیبایی‌سرا</a>
+        <nav class="site-nav"><a href="/">محصولات</a><a href="/cart.html">سبد خرید</a></nav>
+    </header>
+    <main class="page">
+        <section class="intro"><span class="eyebrow">مراقبت روزانه، حس خوب</span><h1>زیبایی‌سرا</h1><p>محصولات مراقبتی موردعلاقه‌ات را پیدا کن.</p></section>
+        <div id="products"></div>
+    </main>
+
+    <script>
+        async function loadProducts() {
+
+            const response = await fetch("api/products");
+            const products = await response.json();
+
+            const container = document.getElementById("products");
+
+            products.forEach(product => {
+
+                const element = document.createElement("div");
+
+                element.className = "product-card";
+
+                element.innerHTML = `
+                    <a href="/product.html?id=${product.ID}">
+                        <h2>${product.name}</h2>
+                        <img src="${product.image_url}" alt="${product.name}">
+                        <p>${product.description}</p>
+                        <p class="price">${product.price.toLocaleString()} تومان</p>
+                    </a>
+                `;
+
+                container.appendChild(element)
+    
+            })
+           
+        }
+
+        loadProducts();
+    </script>
+
+</body>
+</html>
