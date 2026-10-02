@@ -39,20 +39,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/styles.css">
-    <title>Product</title>
+    <link rel="stylesheet" href="/styles.css?v=lala-marnia-1">
+    <title>محصول | LaLa Marnia</title>
 </head>
 
 <body>
 
     <header class="site-header">
-        <a class="brand" href="/">زیبایی‌سرا</a>
-        <nav class="site-nav"><a href="/">محصولات</a><a href="/cart.html">سبد خرید</a></nav>
+        <a class="brand" href="/" aria-label="LaLa Marnia، صفحه اصلی"><span>LaLa</span> Marnia</a>
+        <nav class="site-nav" aria-label="ناوبری اصلی"><a href="/">فروشگاه</a><a href="/cart.html">سبد خرید</a></nav>
     </header>
     <main class="page">
-        <p><a class="muted" href="/">← بازگشت به محصولات</a></p>
+        <p class="breadcrumb"><a class="muted" href="/">فروشگاه</a><span aria-hidden="true">/</span><span>جزئیات محصول</span></p>
         <div id="product" class="panel product-detail"></div>
     </main>
+    <footer class="site-footer"><a class="brand" href="/">LaLa Marnia</a><span>زیبایی، در لحظه‌های روزمره.</span></footer>
 
     <script>
         async function loadProduct() {
@@ -65,13 +66,14 @@
 
             const container = document.getElementById("product");
             container.innerHTML = `
-                <img src="${product.image_url}" alt="${product.name}">
+                <div class="product-detail-image"><img src="${product.image_url}" alt="${product.name}"></div>
                 <section>
-                    <span class="eyebrow">انتخابی برای مراقبت تو</span>
+                    <span class="eyebrow">LaLa Marnia · انتخابی برای مراقبت تو</span>
                     <h1>${product.name}</h1>
-                    <p>${product.description}</p>
-                    <p class="price">${product.price.toLocaleString()} تومان</p>
-                    <button onclick="addToCart(${product.ID})">افزودن به سبد خرید</button>
+                    <p class="product-description">${product.description}</p>
+                    <p class="price product-detail-price">${product.price.toLocaleString()} <span>تومان</span></p>
+                    <button class="add-to-cart" onclick="addToCart(${product.ID})">افزودن به سبد خرید <span aria-hidden="true">←</span></button>
+                    <p class="product-assurance"><span aria-hidden="true">✓</span> سفارش آسان و خرید مطمئن</p>
                 </section>
             `;
         }

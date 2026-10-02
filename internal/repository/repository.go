@@ -12,6 +12,8 @@ var (
 	ErrInvalidPrice    = errors.New("Price must be greater than zero")
 	ErrNotEnoughStock  = errors.New("Not enough stock")
 	ErrProductNotFound = errors.New("Product not found")
+	ErrOrderNotFound   = errors.New("Order not found")
+	ErrInvalidStatus   = errors.New("Invalid order status")
 )
 
 func GetAllProducts(db *gorm.DB) ([]models.Product, error) {
@@ -104,6 +106,7 @@ func CreateOrder(
 			CustomerName:    customerName,
 			CustomerPhone:   customerPhone,
 			CustomerAddress: customerAddress,
+			Status:          "pending",
 		}
 
 		for i := range items {
@@ -157,7 +160,41 @@ func CreateOrder(
 	})
 }
 
-// func GetOrders(db *gorm.DB) ([]models.Order, error) {
-// 	var orders []models.Order
+func GetOrders(db *gorm.DB) ([]models.Order, error) {
+	var orders []models.Order
 
-// }
+	// Preload tells GORM: "when you fetch orders, also fetch their associated OrderItemsa and Product"
+	result := db.
+		Preload("Items").
+		Preload("Items.Product").
+		Find(&orders)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return orders, nil
+}
+
+func UpdateOrderStatus(db *gorm.DB, orderID uint, status string) error {
+	switch status {
+	case "pending", "processing", "shipped", "cancelled", "completed":
+		// valid
+	default:
+		return ErrInvalidStatus
+	}
+
+	result := db.
+		Model(&models.Order{}).
+		Where("id = ?", orderID).
+		Update("status", status)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return ErrOrderNotFound
+	}
+	return nil
+}

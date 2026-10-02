@@ -9,6 +9,7 @@ type Order struct {
 	CustomerPhone   string
 	CustomerAddress string
 	TotalPrice      int64
+	Status          string
 	Items           []OrderItem
 }
 
@@ -19,4 +20,6 @@ type OrderItem struct {
 	ProductID uint
 	Quantity  uint
 	UnitPrice int64
+
+	Product Product `gorm:"foreignKey:ProductID"`
 }

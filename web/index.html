@@ -45,19 +45,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/styles.css">
-    <title>Beauty Store</title>
+    <link rel="stylesheet" href="/styles.css?v=lala-marnia-1">
+    <meta name="theme-color" content="#f8f3ee">
+    <title>LaLa Marnia | فروشگاه زیبایی</title>
 </head>
 <body>
 
     <header class="site-header">
-        <a class="brand" href="/">زیبایی‌سرا</a>
-        <nav class="site-nav"><a href="/">محصولات</a><a href="/cart.html">سبد خرید</a></nav>
+        <a class="brand" href="/" aria-label="LaLa Marnia، صفحه اصلی"><span>LaLa</span> Marnia</a>
+        <nav class="site-nav" aria-label="ناوبری اصلی"><a href="/" aria-current="page">فروشگاه</a><a href="/cart.html">سبد خرید</a></nav>
     </header>
     <main class="page">
-        <section class="intro"><span class="eyebrow">مراقبت روزانه، حس خوب</span><h1>زیبایی‌سرا</h1><p>محصولات مراقبتی موردعلاقه‌ات را پیدا کن.</p></section>
-        <div id="products"></div>
+        <section class="store-hero">
+            <div class="store-hero-copy">
+                <span class="eyebrow">مراقبت روزانه، با انتخابی آگاهانه</span>
+                <h1>زیبایی در <span>سادگی</span> پیدا می‌شود.</h1>
+                <p>محصولات مراقبتی منتخب برای لحظه‌های کوچک و خوب روزمره.</p>
+                <a class="button hero-button" href="#shop">دیدن محصولات <span aria-hidden="true">←</span></a>
+                <div class="hero-note"><span aria-hidden="true">✳</span> انتخاب‌هایی برای مراقبت از خودت</div>
+            </div>
+            <div class="store-hero-art">
+                <div class="hero-image-frame"><img src="/images/shampoo.jpg" alt="محصول مراقبت از مو از مجموعه LaLa Marnia"></div>
+                <span class="hero-stamp">A little<br>care, every day</span>
+            </div>
+        </section>
+
+        <section class="shop-section" id="shop">
+            <div class="section-heading">
+                <div><span class="eyebrow">مجموعه ما</span><h2>برای روتین تو</h2></div>
+                <p>محصولی را پیدا کن که با روزت جور است.</p>
+            </div>
+            <div id="products" aria-live="polite"></div>
+        </section>
+
+        <section class="store-promise" aria-label="ویژگی‌های فروشگاه">
+            <div><span class="promise-mark">01</span><p><strong>انتخاب با دقت</strong><br>محصولات کاربردی برای هر روز</p></div>
+            <div><span class="promise-mark">02</span><p><strong>خرید آسان</strong><br>سفارش ساده و بی‌دردسر</p></div>
+            <div><span class="promise-mark">03</span><p><strong>مراقبت برای خودت</strong><br>کمی وقت برای حال بهتر</p></div>
+        </section>
     </main>
+    <footer class="site-footer"><a class="brand" href="/">LaLa Marnia</a><span>زیبایی، در لحظه‌های روزمره.</span></footer>
 
     <script>
         async function loadProducts() {
@@ -74,11 +101,14 @@
                 element.className = "product-card";
 
                 element.innerHTML = `
-                    <a href="/product.html?id=${product.ID}">
-                        <h2>${product.name}</h2>
-                        <img src="${product.image_url}" alt="${product.name}">
-                        <p>${product.description}</p>
-                        <p class="price">${product.price.toLocaleString()} تومان</p>
+                    <a href="/product.html?id=${product.ID}" aria-label="مشاهده ${product.name}">
+                        <div class="product-card-image"><img src="${product.image_url}" alt="${product.name}"></div>
+                        <div class="product-card-copy">
+                            <span class="product-kicker">LaLa Marnia · مراقبت روزانه</span>
+                            <h2>${product.name}</h2>
+                            <p>${product.description}</p>
+                            <span class="product-card-bottom"><span class="price">${product.price.toLocaleString()} تومان</span><span class="product-arrow" aria-hidden="true">←</span></span>
+                        </div>
                     </a>
                 `;
 
