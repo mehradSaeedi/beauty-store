@@ -8,13 +8,22 @@ import (
 )
 
 var (
-	ErrInvalidQuantity = errors.New("Quantity must be greater than zero")
-	ErrInvalidPrice    = errors.New("Price must be greater than zero")
-	ErrNotEnoughStock  = errors.New("Not enough stock")
-	ErrProductNotFound = errors.New("Product not found")
-	ErrOrderNotFound   = errors.New("Order not found")
-	ErrInvalidStatus   = errors.New("Invalid order status")
+	ErrInvalidQuantity   = errors.New("Quantity must be greater than zero")
+	ErrInvalidPrice      = errors.New("Price must be greater than zero")
+	ErrNotEnoughStock    = errors.New("Not enough stock")
+	ErrProductNotFound   = errors.New("Product not found")
+	ErrOrderNotFound     = errors.New("Order not found")
+	ErrInvalidStatus     = errors.New("Invalid order status")
+	ErrInvalidTransition = errors.New("Invalid order status transition")
 )
+
+var validTransitions = map[string][]string{
+	"pending":    {"processing", "cancelled"},
+	"processing": {"shipped", "cancelled"},
+	"shipped":    {"completed"},
+	"completed":  {},
+	"cancelled":  {"pending", "processing"},
+}
 
 func GetAllProducts(db *gorm.DB) ([]models.Product, error) {
 	var products []models.Product
@@ -176,25 +185,97 @@ func GetOrders(db *gorm.DB) ([]models.Order, error) {
 	return orders, nil
 }
 
-func UpdateOrderStatus(db *gorm.DB, orderID uint, status string) error {
-	switch status {
+func UpdateOrderStatus(db *gorm.DB, orderID uint, newStatus string) error {
+	switch newStatus {
 	case "pending", "processing", "shipped", "cancelled", "completed":
 		// valid
 	default:
 		return ErrInvalidStatus
 	}
 
-	result := db.
-		Model(&models.Order{}).
-		Where("id = ?", orderID).
-		Update("status", status)
+	return db.Transaction(func(tx *gorm.DB) error {
+		var order models.Order
 
-	if result.Error != nil {
-		return result.Error
-	}
+		result := tx.
+			Preload("Items").
+			First(&order, orderID)
 
-	if result.RowsAffected == 0 {
-		return ErrOrderNotFound
-	}
-	return nil
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return ErrOrderNotFound
+		}
+
+		if result.Error != nil {
+			return result.Error
+		}
+
+		allowedStatus, exists := validTransitions[order.Status]
+
+		// We don't technically need this
+		if !exists {
+			return ErrInvalidStatus
+		}
+
+		allowed := false
+
+		for _, status := range allowedStatus {
+			if status == newStatus {
+				allowed = true
+				break
+			}
+		}
+
+		if !allowed {
+			return ErrInvalidTransition
+		}
+
+		wasCancelled := order.Status == "cancelled"
+		willBeCancelled := newStatus == "cancelled"
+
+		if !wasCancelled && willBeCancelled {
+			//restore stock
+
+			for _, item := range order.Items {
+				result := tx.Model(&models.Product{}).
+					Where("id = ?", item.ProductID).
+					UpdateColumn(
+						"stock",
+						gorm.Expr("stock + ?", item.Quantity),
+					)
+
+				if result.Error != nil {
+					return result.Error
+				}
+			}
+		}
+
+		if wasCancelled && !willBeCancelled {
+			//reverse stock again
+
+			for _, item := range order.Items {
+				result := tx.Model(&models.Product{}).
+					Where("id = ? AND stock >= ?", item.ProductID, item.Quantity).
+					UpdateColumn(
+						"stock",
+						gorm.Expr("stock - ?", item.Quantity),
+					)
+
+				if result.Error != nil {
+					return result.Error
+				}
+
+				if result.RowsAffected == 0 {
+					return ErrNotEnoughStock
+				}
+
+			}
+		}
+		order.Status = newStatus
+
+		if err := tx.Save(&order).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 }

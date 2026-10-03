@@ -122,6 +122,9 @@ func UpdateOrderStatus(db *gorm.DB) http.HandlerFunc {
 		}
 
 		err = repository.UpdateOrderStatus(db, uint(id), request.Status)
+
+		log.Printf("UpdateOrderStatus returned: %v", err)
+
 		if errors.Is(err, repository.ErrOrderNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
@@ -132,9 +135,19 @@ func UpdateOrderStatus(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
+		if errors.Is(err, repository.ErrInvalidTransition) {
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
+
+		if errors.Is(err, repository.ErrNotEnoughStock) {
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
+
 		if err != nil {
 			log.Println("UpdateOrderRequest error:", err.Error())
-			http.Error(w, "Could not update order", http.StatusInternalServerError)
+			http.Error(w, "Could not update order status", http.StatusInternalServerError)
 			return
 		}
 

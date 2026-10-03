@@ -92,7 +92,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/styles.css?v=lala-marnia-1">
+    <link rel="stylesheet" href="/styles.css?v=lala-marnia-2">
     <title>سبد خرید | LaLa Marnia</title>
 </head>
 
@@ -193,13 +193,25 @@
 
         }
 
+        function showNotification(message, type) {
+            document.querySelectorAll(".notification").forEach((item) => item.remove());
+
+            const notification = document.createElement("div");
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            notification.setAttribute("role", type === "error" ? "alert" : "status");
+            document.body.appendChild(notification);
+
+            setTimeout(() => notification.remove(), 3000);
+        }
+
         async function checkout(event) {
             event.preventDefault();
 
             const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
             if (cart.length === 0) {
-                alert("سبد خرید شما خالی است");
+                showNotification("سبد خرید شما خالی است.", "error");
                 return;
             }
 
@@ -207,28 +219,35 @@
             const customerPhone = document.getElementById("customer-phone").value;
             const customerAddress = document.getElementById("customer-address").value;
 
-            const response = await fetch("/api/orders", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    customer_name: customerName,
-                    customer_phone: customerPhone,
-                    customer_address: customerAddress,
-                    items: cart
-                })
-            })
+            let response;
+            try {
+                response = await fetch("/api/orders", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        customer_name: customerName,
+                        customer_phone: customerPhone,
+                        customer_address: customerAddress,
+                        items: cart
+                    })
+                });
+            } catch (error) {
+                showNotification("ارتباط با سرور برقرار نشد. دوباره تلاش کنید.", "error");
+                console.error("Order submission error:", error);
+                return;
+            }
 
             if (!response.ok) {
                 const message = await response.text();
-                alert(message || "ثبت سفارش ناموفق! لطفا دوباره تلاش کنید");
+                showNotification(message || "ثبت سفارش ناموفق بود. لطفاً دوباره تلاش کنید.", "error");
                 return;
             }
 
         localStorage.removeItem("cart");
         loadCart();
-        alert("سفارش شما با موفقیت ثبت شد.");
+        showNotification("سفارش شما با موفقیت ثبت شد.", "success");
         }
         document.addEventListener("DOMContentLoaded", loadCart);
         

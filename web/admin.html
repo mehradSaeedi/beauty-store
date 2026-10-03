@@ -61,12 +61,20 @@
 
     <script>
         const statusLabels = {
-            pending: "در انتظار بررسی",
+            pending:    "در انتظار بررسی",
             processing: "در حال پردازش",
-            shipped: "ارسال شده",
-            completed: "تکمیل شده",
-            cancelled: "لغو شده"
+            shipped:    "ارسال شده",
+            completed:  "تکمیل شده",
+            cancelled:  "لغو شده"
         };
+        
+        const validTransitions = {
+            pending:    ["processing", "cancelled"],
+            processing: ["shipped", "cancelled"],
+            shipped:    ["completed"],
+            completed:  [],
+            cancelled:  ["pending", "processing"],
+        }
 
         let orders = [];
 
@@ -137,11 +145,15 @@
                                     data-order-id="${order.ID}"
                                     data-current-status="${order.Status}"
                                 >
-                                    <option value="pending" ${order.Status === "pending" ? "selected" : ""}>${statusLabels.pending}</option>
-                                    <option value="processing" ${order.Status === "processing" ? "selected" : ""}>${statusLabels.processing}</option>
-                                    <option value="shipped" ${order.Status === "shipped" ? "selected" : ""}>${statusLabels.shipped}</option>
-                                    <option value="completed" ${order.Status === "completed" ? "selected" : ""}>${statusLabels.completed}</option>
-                                    <option value="cancelled" ${order.Status === "cancelled" ? "selected" : ""}>${statusLabels.cancelled}</option>
+
+                                    ${[
+                                        order.Status,
+                                        ...validTransitions[order.Status]
+                                    ].map(status => `
+                                        <option value="${status}" ${order.Status === status ? "selected" : ""}>
+                                            ${statusLabels[status]}
+                                        </option>
+                                    `).join("")}
                                 </select>
                             </div>
                         </div>
@@ -252,10 +264,18 @@
                 });
                 if (!response.ok) {
                     select.value = previousStatus;
-                    showNotification(
-                        "تغییر وضعیت سفارش ناموفق بود",
-                        "error"
-                    );
+
+                    if (response.status === 409) {
+                        const message = await response.text();
+
+                        if (message === "Not enough stock\n"){
+                            showNotification("موجودی کافی نیست", "error");
+                        } else if (message === "Invalid order status transition\n") {
+                            showNotification("این تغییر وضعیت مجاز نیست", "error");
+                        } else {
+                            showNotification("تغییر وضعیت سفارش ناموفق بود", "error");
+                        }
+                    }
 
                     return;
                 }
