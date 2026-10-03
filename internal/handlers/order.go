@@ -123,8 +123,6 @@ func UpdateOrderStatus(db *gorm.DB) http.HandlerFunc {
 
 		err = repository.UpdateOrderStatus(db, uint(id), request.Status)
 
-		log.Printf("UpdateOrderStatus returned: %v", err)
-
 		if errors.Is(err, repository.ErrOrderNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
